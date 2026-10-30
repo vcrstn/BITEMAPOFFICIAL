@@ -296,9 +296,20 @@ export function Inventory() {
     const status = getStockStatus(item);
     const search = searchTerm.toLowerCase();
 
+    const matchesStatus = () => {
+      if (statusFilter === 'All') return true;
+      if (statusFilter === 'Low / Expiring / Unbatched') {
+        return status === 'Low Stock' || status === 'Expiring Soon' || status === 'No Lot/Batch';
+      }
+      if (statusFilter === 'Critical Items') {
+        return status === 'Critical' || status === 'Expired';
+      }
+      return status === statusFilter;
+    };
+
     return (
       (!search || item.item_name?.toLowerCase().includes(search) || item.item_type?.toLowerCase().includes(search)) &&
-      (statusFilter === 'All' || status === statusFilter) &&
+      matchesStatus() &&
       (typeFilter === 'All' || item.item_type === typeFilter)
     );
   });
@@ -320,6 +331,11 @@ export function Inventory() {
             value={totalItems.toString()}
             iconBgColor="bg-accent-bg"
             iconColor="text-accent"
+            active={statusFilter === 'All'}
+            onClick={() => {
+              setStatusFilter('All');
+              setCurrentPage(1);
+            }}
           />
           <StatCard
             icon={AlertTriangle}
@@ -327,6 +343,11 @@ export function Inventory() {
             value={lowStockItems.toString()}
             iconBgColor="bg-warning-bg"
             iconColor="text-warning"
+            active={statusFilter === 'Low / Expiring / Unbatched'}
+            onClick={() => {
+              setStatusFilter((prev) => (prev === 'Low / Expiring / Unbatched' ? 'All' : 'Low / Expiring / Unbatched'));
+              setCurrentPage(1);
+            }}
           />
           <StatCard
             icon={AlertTriangle}
@@ -334,6 +355,11 @@ export function Inventory() {
             value={criticalItems.toString()}
             iconBgColor="bg-destructive-bg"
             iconColor="text-destructive"
+            active={statusFilter === 'Critical Items'}
+            onClick={() => {
+              setStatusFilter((prev) => (prev === 'Critical Items' ? 'All' : 'Critical Items'));
+              setCurrentPage(1);
+            }}
           />
         </div>
 
@@ -379,6 +405,8 @@ export function Inventory() {
                 className="h-10 rounded-full border border-input bg-input-background px-3 text-sm shadow-sm focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="All">All Status</option>
+                <option value="Low / Expiring / Unbatched">Low / Expiring / Unbatched</option>
+                <option value="Critical Items">Critical Items</option>
                 <option value="OK">OK</option>
                 <option value="No Lot/Batch">No Lot/Batch</option>
                 <option value="Low Stock">Low Stock</option>
